@@ -3,9 +3,9 @@ const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const app = express();
-const { PrismaClient } = require('@prisma/client') 
+const { PrismaClient } = require('@prisma/client');
 const prisma = new  PrismaClient();
-const port = process.env.PORT;
+const port = 3000;
 
 app.listen(port,
     ()=> console.log(`Server Started on port ${port}...`));
@@ -13,8 +13,9 @@ app.listen(port,
 app.use(express.json());
 
 app.post('/register', async(req,res)=>{
-    // preguntarle a sofi nombre de las variables
+    // preguntarle a Sofi
     const name = req.body.name;
+    const lastName = req.body.lastName;
     const email = req.body.email;
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
@@ -33,6 +34,7 @@ app.post('/register', async(req,res)=>{
             data: {
               email: email,
               name: name,
+              lastname: lastName,
               password: hashedPassword
             }
           });

@@ -34,7 +34,7 @@ app.post('/register', async(req,res)=>{
     
     if(users.length != 0){
         console.log('User already exists')
-        res.sendStatus(409) 
+        res.json({success: "false"})
     }
     else{
         const user = await prisma.user.create({
@@ -46,7 +46,7 @@ app.post('/register', async(req,res)=>{
             }
           });
           console.log ('Created new User')
-          res.sendStatus(201)
+          res.json({success: "true"})
     }
 });
 
@@ -62,18 +62,18 @@ app.post('/login', async(req, res)=>{
     
     if(users.length == 0){
         console.log('User does not exist')
-        res.sendStatus(404)
+        res.json({success: "false"})
     }
     else{
         const hashedPassword = users[0].password;
         bcrypt.compare(password, hashedPassword, function(err, result) {
           if (result) {
             console.log('Login successful')
-            res.send(`${email} is logged in`)
+            res.json({success: "true"})
           }
           else{
             console.log('Password is incorrect')
-            res.send('Password incorrect')
+            res.json({success: "false"})
           }
         });
     }

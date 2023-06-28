@@ -2,10 +2,12 @@ const express = require('express');
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
-const app = express();
+
 const { PrismaClient } = require('@prisma/client');
 const prisma = new  PrismaClient();
-const port = 3000;
+
+const app = express();
+const port = process.env.PORT;
 
 app.listen(port,
     ()=> console.log(`Server Started on port ${port}...`));
@@ -17,11 +19,13 @@ app.post('/register', async(req,res)=>{
     const name = req.body.name;
     const lastName = req.body.lastName;
     const email = req.body.email;
-    const hashedPassword = await bcrypt.hash(req.body.password, 10, function(err, hash){
-      if(err){
-        console.log(err);
-      }
-    });
+
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(req.body.password, salt, function(err, hash) {
+          const hashedPassword = hash;
+      });
+    })
+
     const users = await prisma.user.findMany({
         where: {
           email: email
@@ -62,13 +66,15 @@ app.post('/login', async(req, res)=>{
     }
     else{
         const hashedPassword = users[0].password;
-        if(await bcrypt.compare(password, hashedPassword)){
+        bcrypt.compare(password, hashedPassword, function(err, result) {
+          if (result) {
             console.log('Login successful')
-            res.send(`${email} is logged in`) 
-        }
-        else{
+            res.send(`${email} is logged in`)
+          }
+          else{
             console.log('Password is incorrect')
             res.send('Password incorrect')
-        }
+          }
+        });
     }
 });

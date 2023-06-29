@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://ir5pge995ja6kk3p58dv:pscale_pw_U8HxOqN77Qy52OF3CXPz5qfYXsSq7C1Gu07wbFw57N8@aws.connect.psdb.cloud/dbproyecto?sslaccept=strict&ssl={'rejectUnauthorized':true}"
+  url      = ACA SOFI
   relationMode = "prisma"
 }
 

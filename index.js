@@ -1,6 +1,6 @@
 const express = require('express');
 const mysql = require('mysql2');
-const dotenv = require('dotenv');
+const dotenv = require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -11,12 +11,12 @@ const prisma = new PrismaClient();
 const app = express();
 app.use(express.json());
 app.use(cors());
-const TOKEN_SECRET = '09f26e402586e2faa8da4c98a35f1b20d6b033c6097befa8be3486a829587fe2f90a832bd3ff9d42710a4da095a2ce285b009f0c3730cd9b8e1af3eb84df6611';
+const secret = process.env.TOKEN_SECRET;
 
-const port = 9000;
+const port = process.env.PORT;
 
 function generateToken(email) {
-  return jwt.sign({ email: `${email}` }, TOKEN_SECRET, { expiresIn: '3600s' });
+  return jwt.sign({ email: `${email}` }, secret, { expiresIn: '3600s' });
 }
 
 

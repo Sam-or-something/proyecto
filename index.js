@@ -49,7 +49,7 @@ app.post('/register', async (req, res) => {
   const email = req.body.email;
   const hashedPassword = await hashPassword(req.body.password);
 
-  const users = await prisma.user.findMany({
+  const users = await prisma.User.findMany({
     where: {
       email: email
     }
@@ -60,7 +60,7 @@ app.post('/register', async (req, res) => {
     res.json({ success: "false" })
   }
   else {
-    const user = await prisma.user.create({
+    const user = await prisma.User.create({
       data: {
         email: email,
         name: Name,
@@ -78,7 +78,7 @@ app.post('/login', async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  const users = await prisma.user.findMany({
+  const users = await prisma.User.findMany({
     where: {
       email: email
     }
@@ -101,5 +101,39 @@ app.post('/login', async (req, res) => {
         res.json({ success: "false" })
       }
     });
+  }
+});
+
+app.post('/crear-curso', async(req, res) => {
+  const Name = req.body.Name;
+  const anio = req.body.anio;
+  const materia = req.body.anio;
+  const id = req.body.id;
+
+  const cursos = await prisma.Curso.findMany({
+    where: {
+      Name: Name
+    }
+  });
+
+  if (cursos.length != 0) {
+    console.log('Curso name already exists')
+    res.json({ success: "false" })
+  }
+  else {
+    const newCurso = await prisma.Curso.create({
+      data: {
+        Name: Name,
+        anio: anio,
+        materia: materia,
+        profs: {
+          connect:{
+              id: id
+          }
+        }
+      }
+    })
+    console.log('Created new curso');
+    res.json({ success: "true" })
   }
 });

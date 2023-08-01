@@ -11,9 +11,19 @@ datasource db {
   relationMode = "prisma"
 }
 
-model user {
-  email String @unique @id
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
   name String
   lastName String
   password String
+  cursos Curso[] @relation("UserToCurso")
+}
+
+model Curso {
+  id Int @id @default(autoincrement())
+  Name String
+  anio String
+  materia String
+  profs User[] @relation("UserToCurso")
 }

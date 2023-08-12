@@ -15,10 +15,9 @@ const secret = process.env.TOKEN_SECRET;
 
 const port = process.env.PORT;
 
-function generateToken(email) {
-  return jwt.sign({ email: `${email}` }, secret, { expiresIn: '3600s' });
+function generateToken(user) {
+  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3600s' });
 }
-
 
 app.listen(port,
   () => console.log(`Server Started on port ${port}...`)
@@ -68,7 +67,7 @@ app.post('/register', async (req, res) => {
         password: hashedPassword
       }
     });
-    const token = generateToken(email);
+    const token = generateToken(user);
     console.log('Created new User')
     res.json({ success: "true", token: `${token}` })
   }
@@ -78,21 +77,21 @@ app.post('/login', async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  const users = await prisma.User.findMany({
+  const user = await prisma.User.findUnique({
     where: {
       email: email
     }
   });
 
-  if (users.length == 0) {
+  if (user.length == 0) {
     console.log('User does not exist')
     res.json({ success: "false" })
   }
   else {
-    const hashedPassword = users[0].password;
+    const hashedPassword = user.password;
     bcrypt.compare(password, hashedPassword, function (err, result) {
       if (result) {
-        const token = generateToken(email);
+        const token = generateToken(user);
         console.log('Login successful')
         res.json({ success: "true", token: `${token}` })
       }
@@ -104,36 +103,65 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/crear-curso', async(req, res) => {
+
+app.post('/crear-curso', async(req, res) => { 
   const Name = req.body.Name;
   const anio = req.body.anio;
-  const materia = req.body.anio;
-  const id = req.body.id;
-
-  const cursos = await prisma.Curso.findMany({
+  const materia = req.body.materia;
+  const token = req.body.token
+  const decoded = jwt.verify(token, secret)
+  const id = parseInt(decoded.id)
+  const cursos = await prisma.User.findUnique({
     where: {
-      Name: Name
+      id: id
+    },
+    select: {
+      cursos: true
     }
   });
 
-  if (cursos.length != 0) {
+  let existe = false;
+  for (curso of cursos.cursos){
+    if(curso.Name == Name){
+      existe = true
+    }
+  }
+
+  if(existe){
     console.log('Curso name already exists')
     res.json({ success: "false" })
   }
-  else {
-    const newCurso = await prisma.Curso.create({
-      data: {
-        Name: Name,
-        anio: anio,
-        materia: materia,
-        profs: {
-          connect:{
-              id: id
-          }
+  else{
+  const newCurso = await prisma.Curso.create({
+    data: {
+      Name: Name,
+      anio: anio,
+      materia: materia,
+      profs: {
+        connect:{
+            id: id
         }
       }
-    })
-    console.log('Created new curso');
-    res.json({ success: "true" })
+    }
+  })
+  console.log('Created new curso')
+  res.json({ success: "true" })
   }
-});
+})
+
+app.post('/cursos', async(req, res) => {
+  const token = req.body.token
+  const decoded = jwt.verify(token, secret)
+  const id = parseInt(decoded.id)
+
+  const cursos = await prisma.User.findUnique({
+    where: {
+      id: id
+    },
+    select: {
+      cursos: true
+    }
+  });
+
+  res.json(cursos.cursos)
+})

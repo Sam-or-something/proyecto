@@ -23,7 +23,7 @@ model User {
 model Curso {
   id Int @id @default(autoincrement())
   Name String
-  anio String
+  anio Int
   materia String
   profs User[] @relation("UserToCurso")
 }

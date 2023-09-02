@@ -115,10 +115,11 @@ app.post('/crear-curso', async(req, res) => {
     where: {
       id: id
     },
-    select: {
+    select: { 
       cursos: true
     }
   });
+  const alumnos = req.body.alumnos.split(",")
 
   let existe = false;
   for (curso of cursos.cursos){
@@ -144,8 +145,25 @@ app.post('/crear-curso', async(req, res) => {
       }
     }
   })
+
+  for(alumno of alumnos){
+    const cursoUpdated = await prisma.Curso.update({
+        where:{
+          id: newCurso.id
+        },
+        data:{
+          alumnos:{
+            create:{
+              Name: alumno
+            }
+          }
+        }
+      })
+  }
+  
+
   console.log('Created new curso')
-  res.json({ success: "true" })
+  res.json({ success: "true" , resultado: newCurso})
   }
 })
 

@@ -1,6 +1,10 @@
-POST http://localhost:9000/cursos HTTP/1.1
-Content-Type: application/json
+POST http://localhost:9000/crear-curso HTTP/1.1
+Content-Type : application/json
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1aWxsZUBtZS5jb20iLCJpZCI6IjIiLCJpYXQiOjE2OTE4NzQ0MjgsImV4cCI6MTY5MTg3ODAyOH0.uvHQPy_ufE5IzvkW_cKDHChU5_kmi_iFw2FWzSWnxI4"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1aWxsZUBtZS5jb20iLCJpZCI6IjQiLCJpYXQiOjE2OTM2OTA2OTMsImV4cCI6MTY5MzY5NDI5M30.mKFcmHxl-GDwyecVEKwIj1phRNmRQd85yLRFqdIofBo",
+    "anio": 1,
+    "Name": "1C",
+    "materia": "matematica",
+    "alumnos": "Juan, Sam, Sofia, Santiago"
 }

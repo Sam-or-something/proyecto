@@ -26,4 +26,12 @@ model Curso {
   anio Int
   materia String
   profs User[] @relation("UserToCurso")
+  alumnos Alumno[]
+}
+
+model Alumno{
+  id Int @id @default(autoincrement())
+  Name String
+  idCurso Int
+  curso Curso @relation(fields: [idCurso], references: [id])
 }

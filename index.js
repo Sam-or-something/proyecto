@@ -16,7 +16,7 @@ const secret = process.env.TOKEN_SECRET;
 const port = process.env.PORT;
 
 function generateToken(user) {
-  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3600s' });
+  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
 }
 
 app.listen(port,
@@ -182,4 +182,39 @@ app.post('/cursos', async(req, res) => {
   });
 
   res.json(cursos.cursos)
+})
+
+app.post('/cursos/:cursoId', async(req, res) => {
+  const curso = parseInt(req.params.cursoId)
+  const token = req.body.token
+  const decoded = jwt.verify(token, secret)
+  const id = parseInt(decoded.id)
+
+  const existe = await prisma.Curso.findMany({
+    where: {
+      id: curso,
+      profs:{
+        some:{
+          id : id
+        }
+      }
+    }
+  })
+
+  if(existe[0]){
+    const alumnos = await prisma.Alumno.findMany({
+      where: {
+        idCurso: curso
+      },
+      select: {
+        Name: true,
+        id: true
+      }
+    })
+    res.json(alumnos)
+    console.log(`curso ${curso} showing`)
+  }
+  else{
+  console.log(`curso ${curso} is not accesible`)
+  }
 })

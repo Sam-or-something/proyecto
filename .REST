@@ -2,5 +2,5 @@ POST http://localhost:9000/cursos HTTP/1.1
 Content-Type: application/json
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1aWxsZUBtZS5jb20iLCJpZCI6IjQiLCJpYXQiOjE2OTQ0Mzk0NDEsImV4cCI6MTY5NDQ1MDI0MX0.EL4YbGEZ7h4hqzCYdrF6nWjAW6dzjo-qzbbvHZdjxBg"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1aWxsZUBtZS5jb20iLCJpZCI6IjQiLCJpYXQiOjE2OTQ4OTI3ODMsImV4cCI6MTY5NDkwMzU4M30.V3ktf-cGQWbbCyI78stJbZvG5_qXoxXHBjiFepDwYv8"
 }

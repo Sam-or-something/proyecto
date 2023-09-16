@@ -218,3 +218,7 @@ app.post('/cursos/:cursoId', async(req, res) => {
   console.log(`curso ${curso} is not accesible`)
   }
 })
+
+app.post('/cursos/:cursoId/edit', async(req, res) => {
+  
+})

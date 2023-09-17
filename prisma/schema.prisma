@@ -34,4 +34,14 @@ model Alumno{
   Name String
   idCurso Int
   curso Curso @relation(fields: [idCurso], references: [id])
+  trabajos Trabajo[]
+}
+
+model Trabajo{
+  id Int @id @default(autoincrement())
+  Name String
+  nota String
+  comentario String
+  idAlumno Int
+  alumno Alumno @relation(fields: [idAlumno], references: [id])
 }

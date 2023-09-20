@@ -79,9 +79,9 @@ app.post('/login', async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if(!email){
-    res.status(404);
+    res.status(404, req.body);
   }
-  const user = await prisma.User.findUnique({
+  /*const user = await prisma.User.findUnique({
     where: {
       email: email
     }
@@ -104,7 +104,7 @@ app.post('/login', async (req, res) => {
         res.json({ success: "false" })
       }
     });
-  }
+  }*/
 });
 
 

@@ -10,7 +10,9 @@ const prisma = new PrismaClient();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ["https://daskolar.vercel.app", "http://localhost:3000"]
+}));
 const secret = process.env.TOKEN_SECRET;
 
 const port = process.env.PORT;

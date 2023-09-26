@@ -78,7 +78,7 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   // const email = req.body.email;
   // const password = req.body.password;
-  res.send("llego");
+  res.json({hola: "si"});
   //res.json({return:`${req.body}`});
   /*const user = await prisma.User.findUnique({
     where: {

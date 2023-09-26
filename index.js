@@ -112,6 +112,7 @@ app.post('/crear-curso', async(req, res) => {
   const token = req.body.token
   const decoded = jwt.verify(token, secret)
   const id = parseInt(decoded.id)
+  const alumnos = req.body.alumnos.split(";")
   const cursos = await prisma.User.findUnique({
     where: {
       id: id
@@ -120,10 +121,10 @@ app.post('/crear-curso', async(req, res) => {
       cursos: true
     }
   });
-  const alumnos = req.body.alumnos.split(",")
+  
 
   let existe = false;
-  for (curso of cursos.cursos){
+  for (const curso of cursos.cursos){
     if(curso.Name == Name){
       existe = true
     }
@@ -147,7 +148,7 @@ app.post('/crear-curso', async(req, res) => {
     }
   })
 
-  for(alumno of alumnos){
+  for(const alumno of alumnos){
     const cursoUpdated = await prisma.Curso.update({
         where:{
           id: newCurso.id

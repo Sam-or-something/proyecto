@@ -20,6 +20,9 @@ const port = process.env.PORT;
 function generateToken(user) {
   return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
 }
+function generateRToken(user){
+  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3d' })
+}
 
 app.listen(port,
   () => console.log(`Server Started on port ${port}...`)
@@ -69,9 +72,10 @@ app.post('/register', async (req, res) => {
         password: hashedPassword
       }
     });
-    const token = generateToken(user);
+    const token = generateToken(user)
+    const rToken = generateRToken(user)
     console.log('Created new User')
-    res.json({ success: "true", token: `${token}` })
+    res.json({ success: "true", token: `${token}`, refresh: `${rToken}` })
   }
 });
 
@@ -95,8 +99,9 @@ app.post('/login', async (req, res) => {
     bcrypt.compare(password, hashedPassword, function (err, result) {
       if (result) {
         const token = generateToken(user);
+        const rToken = generateRToken(user)
         console.log('Login successful')
-        res.json({ success: "true", token: `${token}` })
+        res.json({ success: "true", token: `${token}`, refresh: `${rToken}` })
       }
       else {
         console.log('Password is incorrect')

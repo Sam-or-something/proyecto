@@ -75,7 +75,7 @@ app.post('/register', async (req, res) => {
     const token = generateToken(user)
     const rToken = generateRToken(user)
     console.log('Created new User')
-    res.json({ success: "true", token: `${token}`, refresh: `${rToken}` })
+    res.json({ success: "true", token: `${token}`/*, refresh: `${rToken}`*/ })
   }
 });
 

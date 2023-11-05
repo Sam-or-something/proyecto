@@ -80,8 +80,6 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-  console.log("yay");
-  res.json({success: "true"});
   const email = req.body.email;
   const password = req.body.password;
   const user = await prisma.User.findUnique({
@@ -101,7 +99,7 @@ app.post('/login', async (req, res) => {
         const token = generateToken(user);
         const rToken = generateRToken(user)
         console.log('Login successful')
-        res.json({ success: "true", token: `${token}`, refresh: `${rToken}` })
+        res.json({ success: "true", token: `${token}`/*, refresh: `${rToken}` */})
       }
       else {
         console.log('Password is incorrect')

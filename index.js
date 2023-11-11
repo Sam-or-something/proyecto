@@ -24,6 +24,26 @@ function generateRToken(user){
   return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3d' })
 }
 
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+  if (token == null) {
+    console.log("null token")
+    return res.sendStatus(401)
+  }
+
+  try
+  {
+    const decoded = jwt.verify(token, secret,)
+    req.decoded = decoded
+    next()
+  }
+  catch(err){
+    console.log("fail")
+    res.sendStatus(401)
+  }
+}
+
 app.listen(port,
   () => console.log(`Server Started on port ${port}...`)
 );
@@ -110,12 +130,11 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.post('/crear-curso', async(req, res) => { 
+app.post('/crear-curso', authenticateToken, async(req, res) => { 
   const Name = req.body.Name;
   const anio = req.body.anio;
   const materia = req.body.materia;
-  const token = req.body.token
-  const decoded = jwt.verify(token, secret)
+  const decoded = req.decoded
   const id = parseInt(decoded.id)
   const alumnos = req.body.alumnos.split(";")
   const cursos = await prisma.User.findUnique({
@@ -174,9 +193,8 @@ app.post('/crear-curso', async(req, res) => {
   }
 })
 
-app.post('/cursos', async(req, res) => {
-  const token = req.body.token
-  const decoded = jwt.verify(token, secret)
+app.get('/cursos', authenticateToken, async(req, res) => {
+  const decoded = req.decoded
   const id = parseInt(decoded.id)
 
   const cursos = await prisma.User.findUnique({
@@ -191,10 +209,9 @@ app.post('/cursos', async(req, res) => {
   res.json(cursos.cursos)
 })
 
-app.post('/cursos/:cursoId', async(req, res) => {
+app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
   const curso = parseInt(req.params.cursoId)
-  const token = req.body.token
-  const decoded = jwt.verify(token, secret)
+  const decoded = req.decoded
   const id = parseInt(decoded.id)
 
   const existe = await prisma.Curso.findMany({
@@ -226,6 +243,32 @@ app.post('/cursos/:cursoId', async(req, res) => {
   }
 })
 
-app.post('/cursos/:cursoId/edit', async(req, res) => {
-  
+app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>{
+  const cursoId = parseInt(req.params.cursoId)
+  const decoded = req.decoded
+  const userId = parseInt(decoded.id)
+  const Name = req.body.Name
+
+  const existe = await prisma.Curso.findMany({
+    where: {
+      id: cursoId,
+      profs:{
+        some:{
+          id : userId
+        }
+      }
+    }
+  })
+
+  if(existe[0]){
+    const alumnos = await prisma.Alumno.findMany({
+      where: {
+        idCurso: cursoId
+      }
+    })
+    console.log(alumnos)
+  }
+  else{
+    console.log(`curso id ${curso} does not exist`)
+  }
 })

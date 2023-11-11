@@ -17,26 +17,18 @@ Content-Type: application/json
 }
 
 POST http://localhost:9000/crear-curso HTTP/1.1
+Authorization: Bearer 
 Content-Type : application/json
 
 {
-    "token": "",
     "anio": ,
     "Name": "",
-    "materia": ""
-    "alumnos": ",,,"
+    "materia": "",
+    "alumnos": ";;;"
 }
 
-POST http://localhost:9000/cursos HTTP/1.1
-Content-Type: application/json
+GET http://localhost:9000/cursos HTTP/1.1
+Authorization: Bearer 
 
-{
-    "token": ""
-}
-
-POST http://localhost:9000/cursos/:cursoId HTTP/1.1
-Content-Type: application/json
-
-{
-    "token": ""
-}
+GET http://localhost:9000/cursos/:cursoId HTTP/1.1
+Authorization: Bearer

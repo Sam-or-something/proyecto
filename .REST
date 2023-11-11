@@ -1,10 +1,7 @@
-POST http://localhost:9000/cursos/66 HTTP/1.1
+POST http://localhost:9000/cursos/68/crear-trabajo HTTP/1.1
+Authorization: Bearer 
 Content-Type : application/json
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1aWxsZUBtZS5jb20iLCJpZCI6IjQiLCJpYXQiOjE2OTU3NTA4NjgsImV4cCI6MTY5NTc2MTY2OH0.eqzUABM6n_lUwBlIDb_ZAlzWL9YlDMhX9UcOvUzdXZI",
-    "anio": 5,
-    "Name": "gestion K",
-    "materia": "matematica",
-    "alumnos": "Juan; Sofi; Sam; Santiago"
+    "Name": ""
 }

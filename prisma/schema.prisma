@@ -27,6 +27,15 @@ model Curso {
   materia String
   profs User[] @relation("UserToCurso")
   alumnos Alumno[]
+  MTrabajos ModTrabajo[]
+}
+
+model ModTrabajo{
+  id Int @id @default(autoincrement())
+  Name String
+  idCurso Int
+  curso Curso @relation(fields: [idCurso], references: [id])
+  trabajos Trabajo[]
 }
 
 model Alumno{
@@ -39,9 +48,10 @@ model Alumno{
 
 model Trabajo{
   id Int @id @default(autoincrement())
-  Name String
   nota String
   comentario String
+  idMod Int
+  modelo ModTrabajo @relation(fields: [idMod], references: [id])
   idAlumno Int
   alumno Alumno @relation(fields: [idAlumno], references: [id])
 }

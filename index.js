@@ -235,8 +235,46 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
         id: true
       }
     })
-    res.json(alumnos)
+
+    const trabajos = await prisma.ModTrabajo.findMany({
+      where: {
+        idCurso: curso
+      },
+      select: {
+        Name: true,
+        id: true
+      }
+    })
+
+    var notas = []
+
+    for(const alumno of alumnos) {
+      var tbjs = []
+      for(const trabajo of trabajos) {
+        const notasAlumno = await prisma.trabajo.findMany({
+          where: {
+            idAlumno: alumno.id,
+            idMod : trabajo.id
+          },
+          select:{
+            nota: true,
+            comentario: true,
+            id: true,
+            idMod: true,
+            idAlumno: true
+          }
+        })
+        if(notasAlumno[0]){
+          console.log(notasAlumno)
+          var trbj = {Name: trabajo.Name, idTrabajo: trabajo.id, nota: notasAlumno[0].nota, comentario: notasAlumno[0].comentario}
+          console.log(trbj)
+          tbjs.push(trbj)
+        }
+      }
+      notas.push({id: alumno.id, Name: alumno.Name, trabajos: tbjs})
+    }
     console.log(`curso ${curso} showing`)
+    res.json({alumnos: notas})
   }
   else{
   console.log(`curso ${curso} is not accesible`)
@@ -249,6 +287,7 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
   const userId = parseInt(decoded.id)
   const Name = req.body.Name
 
+  //confirmar existencia del curso
   const existe = await prisma.Curso.findMany({
     where: {
       id: cursoId,
@@ -261,14 +300,70 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
   })
 
   if(existe[0]){
-    const alumnos = await prisma.Alumno.findMany({
+    //confirmar que nombre no existe
+    const repetido = await prisma.Curso.findMany({
       where: {
-        idCurso: cursoId
+        id: cursoId,
+        MTrabajos:{
+          some:{
+            Name : Name
+          }
+        }
       }
     })
-    console.log(alumnos)
+
+    if(repetido[0]){
+      console.log(`Trabajo llamado ${Name} ya existe en este curso`)
+      res.json({success: "false"})
+    }
+    else{
+      //lista alumnos
+      const alumnos = await prisma.Alumno.findMany({
+        where: {
+          idCurso: cursoId
+        }
+      })
+
+      //crear modelo
+      const newModelo = await prisma.ModTrabajo.create({
+        data: {
+          Name: Name,
+          curso: {
+            connect:{
+              id: cursoId
+            }
+          }
+        }
+      })
+
+      console.log("new modelo created")
+      
+      for(const alumno of alumnos){
+        const trabajos = await prisma.ModTrabajo.update({
+          where: {
+            id : newModelo.id
+          },
+          data:{
+            trabajos:{
+              create:{
+                nota: "0",
+                comentario: "",
+                alumno: {
+                  connect: {
+                    id:alumno.id
+                  }
+                }
+              }
+            }
+          }
+        })
+      }
+      console.log(`trabajo ${Name} successfully created`)
+      res.json({success: "true"})
+    }
   }
   else{
     console.log(`curso id ${curso} does not exist`)
+    res.json({success: "false"})
   }
 })

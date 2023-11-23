@@ -108,7 +108,7 @@ app.post('/login', async (req, res) => {
     }
   });
 
-  if (user.length == 0) {
+  if (!user) {
     console.log('User does not exist')
     res.json({ success: "false" })
   }
@@ -267,7 +267,6 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
         if(notasAlumno[0]){
           console.log(notasAlumno)
           var trbj = {Name: trabajo.Name, idTrabajo: trabajo.id, nota: notasAlumno[0].nota, comentario: notasAlumno[0].comentario}
-          console.log(trbj)
           tbjs.push(trbj)
         }
       }

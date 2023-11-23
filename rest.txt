@@ -32,3 +32,11 @@ Authorization: Bearer
 
 GET http://localhost:9000/cursos/:cursoId HTTP/1.1
 Authorization: Bearer
+
+POST http://localhost:9000/cursos/:cursoId/crear-trabajo HTTP/1.1
+Authorization: Bearer 
+Content-Type : application/json
+
+{
+    "Name": ""
+}

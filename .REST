@@ -1,2 +1,0 @@
-GET http://localhost:9000/cursos/69 HTTP/1.1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbW15QGhvbGEuY29tIiwiaWQiOiI5IiwiaWF0IjoxNzAwNTEzNDM5LCJleHAiOjE3MDA1MjQyMzl9.lk1vTz19ULAfnt-sp5JdvQJbjbgcUQoOsf-M5jlwaso

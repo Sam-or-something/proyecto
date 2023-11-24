@@ -41,8 +41,8 @@ function authenticateToken(req, res, next) {
   }
 }
 
-async function confirmarCurso(cursoId, userId){
-  const existe = await prisma.Curso.findMany({
+ function confirmarCurso(cursoId, userId){
+  const existe = prisma.Curso.findMany({
     where: {
       id: cursoId,
       profs:{
@@ -52,10 +52,12 @@ async function confirmarCurso(cursoId, userId){
       }
     }
   })
+
   if(existe[0]){
     return true
   }
   else{
+    console.log("no")
     return false
   }
 }
@@ -228,6 +230,7 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
   const id = parseInt(decoded.id)
 
   const existe = confirmarCurso(curso, id)
+  console.log(existe)
 
   if(existe){
     const alumnos = await prisma.Alumno.findMany({

@@ -196,7 +196,7 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
 app.get('/cursos', authenticateToken, async(req, res) => {
   const decoded = req.decoded
   const id = parseInt(decoded.id)
-
+  
   const cursos = await prisma.User.findUnique({
     where: {
       id: id
@@ -205,7 +205,7 @@ app.get('/cursos', authenticateToken, async(req, res) => {
       cursos: true
     }
   });
-
+  console.log("Showing cursos")
   res.json(cursos.cursos)
 })
 
@@ -236,7 +236,7 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
       }
     })
 
-    const trabajos = await prisma.ModTrabajo.findMany({
+    const Modelos = await prisma.ModTrabajo.findMany({
       where: {
         idCurso: curso
       },
@@ -250,11 +250,11 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
 
     for(const alumno of alumnos) {
       var tbjs = []
-      for(const trabajo of trabajos) {
-        const notasAlumno = await prisma.trabajo.findMany({
+      for(const modelo of Modelos) {
+        const notasAlumno = await prisma.Trabajo.findMany({
           where: {
             idAlumno: alumno.id,
-            idMod : trabajo.id
+            idMod : modelo.id
           },
           select:{
             nota: true,
@@ -265,8 +265,7 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
           }
         })
         if(notasAlumno[0]){
-          console.log(notasAlumno)
-          var trbj = {Name: trabajo.Name, idTrabajo: trabajo.id, nota: notasAlumno[0].nota, comentario: notasAlumno[0].comentario}
+          var trbj = {Name: modelo.Name, idTrabajo: notasAlumno[0].id, idMod: modelo.id, nota: notasAlumno[0].nota, comentario: notasAlumno[0].comentario}
           tbjs.push(trbj)
         }
       }
@@ -338,28 +337,83 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
       console.log("new modelo created")
       
       for(const alumno of alumnos){
-        const trabajos = await prisma.ModTrabajo.update({
-          where: {
-            id : newModelo.id
-          },
-          data:{
-            trabajos:{
-              create:{
-                nota: "0",
-                comentario: "",
-                alumno: {
-                  connect: {
-                    id:alumno.id
+        const existe = await prisma.Trabajo.findMany({
+          where:{
+            idAlumno: alumno.id,
+            idMod: newModelo.id
+          }
+        })
+        if(existe[0]){
+          console.log('error de identificacion')
+          res.json({success: "false"})
+        }
+        else{
+          const trabajos = await prisma.ModTrabajo.update({
+            where: {
+              id : newModelo.id
+            },
+            data:{
+              trabajos:{
+                create:{
+                  nota: "0",
+                  comentario: "",
+                  alumno: {
+                    connect: {
+                      id:alumno.id
+                    }
                   }
                 }
               }
             }
-          }
-        })
+          })
+        }
       }
       console.log(`trabajo ${Name} successfully created`)
       res.json({success: "true"})
     }
+  }
+  else{
+    console.log(`curso id ${curso} does not exist`)
+    res.json({success: "false"})
+  }
+})
+
+app.post('/cursos/:cursoId/editar', authenticateToken, async(req, res) => {
+  const cursoId = parseInt(req.params.cursoId)
+  const decoded = req.decoded
+  const userId = parseInt(decoded.id)
+  const datos = req.body.alumnos
+
+  //confirmar existencia del curso
+  const existe = await prisma.Curso.findMany({
+    where: {
+      id: cursoId,
+      profs:{
+        some:{
+          id : userId
+        }
+      }
+    }
+  })
+
+  if(existe[0]){
+    for(const alumno of datos){
+      for(const trabajo of alumno.trabajos){
+        const update = await prisma.Trabajo.update({
+          where:{
+            idAlumno: alumno.id,
+            idMod: trabajo.idMod,
+            id: trabajo.idTrabajo
+          },
+          data:{
+            nota: trabajo.nota,
+            comentario: trabajo.comentario
+          }
+        })
+      }
+    }
+    console.log(`curso ${cursoId} updated`)
+    res.json({success: true})
   }
   else{
     console.log(`curso id ${curso} does not exist`)

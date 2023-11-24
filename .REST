@@ -1,0 +1,48 @@
+POST http://localhost:9000/cursos/70/editar HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbW15QGhvbGEuY29tIiwiaWQiOiIxMCIsImlhdCI6MTcwMDc5NDg4NCwiZXhwIjoxNzAwODA1Njg0fQ.Cr54cbxXnbexsMYH4jeeLee6gJg8THSoTLJCDepePr0
+Content-Type : application/json
+
+{
+  "alumnos": [
+    {
+      "id": 44,
+      "Name": "Sam",
+      "trabajos": [
+        {
+          "Name": "TP1",
+          "idTrabajo": 17,
+          "idMod": 11,
+          "nota": "3",
+          "comentario": "incompleto"
+        },
+        {
+          "Name": "Prueba",
+          "idTrabajo": 19,
+          "idMod": 12,
+          "nota": "6",
+          "comentario": "aprobado, falta desarrollar"
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "Name": " Sofi",
+      "trabajos": [
+        {
+          "Name": "TP1",
+          "idTrabajo": 18,
+          "idMod": 11,
+          "nota": "9",
+          "comentario": "muy bien"
+        },
+        {
+          "Name": "Prueba",
+          "idTrabajo": 20,
+          "idMod": 12,
+          "nota": "10",
+          "comentario": "excelente"
+        }
+      ]
+    }
+  ]
+}

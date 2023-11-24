@@ -20,9 +20,6 @@ const port = process.env.PORT;
 function generateToken(user) {
   return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
 }
-function generateRToken(user){
-  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3d' })
-}
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization']
@@ -44,10 +41,28 @@ function authenticateToken(req, res, next) {
   }
 }
 
+async function confirmarCurso(cursoId, userId){
+  const existe = await prisma.Curso.findMany({
+    where: {
+      id: cursoId,
+      profs:{
+        some:{
+          id : userId
+        }
+      }
+    }
+  })
+  if(existe[0]){
+    return true
+  }
+  else{
+    return false
+  }
+}
+
 app.listen(port,
   () => console.log(`Server Started on port ${port}...`)
 );
-
 
 async function hashPassword(password) {
   const saltRounds = 10;
@@ -67,12 +82,12 @@ app.get('/', (_, res) => {
 })
 
 app.post('/register', async (req, res) => {
-  // preguntarle a Sofi
   const Name = req.body.Name;
   const lastName = req.body.lastName;
   const email = req.body.email;
   const hashedPassword = await hashPassword(req.body.password);
 
+  //confirmar que no exista otra cuenta con el mismo email
   const users = await prisma.User.findMany({
     where: {
       email: email
@@ -84,6 +99,7 @@ app.post('/register', async (req, res) => {
     res.json({ success: "false" })
   }
   else {
+    //crear usuario
     const user = await prisma.User.create({
       data: {
         email: email,
@@ -93,7 +109,6 @@ app.post('/register', async (req, res) => {
       }
     });
     const token = generateToken(user)
-    const rToken = generateRToken(user)
     console.log('Created new User')
     res.json({ success: "true", token: `${token}`/*, refresh: `${rToken}`*/ })
   }
@@ -102,6 +117,8 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+
+  //confirmar existencia de usuario con ese mail
   const user = await prisma.User.findUnique({
     where: {
       email: email
@@ -113,11 +130,11 @@ app.post('/login', async (req, res) => {
     res.json({ success: "false" })
   }
   else {
+    //autenticar contraseña
     const hashedPassword = user.password;
     bcrypt.compare(password, hashedPassword, function (err, result) {
       if (result) {
         const token = generateToken(user);
-        const rToken = generateRToken(user)
         console.log('Login successful')
         res.json({ success: "true", token: `${token}`/*, refresh: `${rToken}` */})
       }
@@ -137,59 +154,55 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
   const decoded = req.decoded
   const id = parseInt(decoded.id)
   const alumnos = req.body.alumnos.split(";")
-  const cursos = await prisma.User.findUnique({
+
+  const existe = await prisma.Curso.findMany({
     where: {
-      id: id
-    },
-    select: { 
-      cursos: true
-    }
-  });
-  
-
-  let existe = false;
-  for (const curso of cursos.cursos){
-    if(curso.Name == Name){
-      existe = true
-    }
-  }
-
-  if(existe){
-    console.log('Curso name already exists')
-    res.json({ success: "false" })
-  }
-  else{
-  const newCurso = await prisma.Curso.create({
-    data: {
       Name: Name,
-      anio: anio,
-      materia: materia,
-      profs: {
-        connect:{
-            id: id
+      profs:{
+        some:{
+          id: id
         }
       }
     }
   })
 
-  for(const alumno of alumnos){
-    const cursoUpdated = await prisma.Curso.update({
-        where:{
-          id: newCurso.id
-        },
-        data:{
-          alumnos:{
-            create:{
-              Name: alumno
-            }
+  if(existe[0]){
+    console.log('Curso name already exists')
+    res.json({ success: "false" })
+  }
+  else{
+    //crear curso
+    const newCurso = await prisma.Curso.create({
+      data: {
+        Name: Name,
+        anio: anio,
+        materia: materia,
+        profs: {
+          connect:{
+              id: id
           }
         }
-      })
-  }
-  
+      }
+    })
 
-  console.log('Created new curso')
-  res.json({ success: "true" , resultado: newCurso})
+    //crear alumnos y poner en el curso
+    for(const alumno of alumnos){
+      const cursoUpdated = await prisma.Curso.update({
+          where:{
+            id: newCurso.id
+          },
+          data:{
+            alumnos:{
+              create:{
+                Name: alumno
+              }
+            }
+          }
+        })
+    }
+
+    console.log('Created new curso')
+    res.json({ success: "true" , resultado: newCurso})
   }
 })
 
@@ -214,21 +227,15 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
   const decoded = req.decoded
   const id = parseInt(decoded.id)
 
-  const existe = await prisma.Curso.findMany({
-    where: {
-      id: curso,
-      profs:{
-        some:{
-          id : id
-        }
-      }
-    }
-  })
+  const existe = confirmarCurso(curso, id)
 
-  if(existe[0]){
+  if(existe){
     const alumnos = await prisma.Alumno.findMany({
       where: {
         idCurso: curso
+      },
+      orderBy:{
+        Name:'asc'
       },
       select: {
         Name: true,
@@ -286,18 +293,9 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
   const Name = req.body.Name
 
   //confirmar existencia del curso
-  const existe = await prisma.Curso.findMany({
-    where: {
-      id: cursoId,
-      profs:{
-        some:{
-          id : userId
-        }
-      }
-    }
-  })
+  const existe = confirmarCurso(cursoId, userId)
 
-  if(existe[0]){
+  if(existe){
     //confirmar que nombre no existe
     const repetido = await prisma.Curso.findMany({
       where: {
@@ -385,18 +383,9 @@ app.post('/cursos/:cursoId/editar', authenticateToken, async(req, res) => {
   const datos = req.body.alumnos
 
   //confirmar existencia del curso
-  const existe = await prisma.Curso.findMany({
-    where: {
-      id: cursoId,
-      profs:{
-        some:{
-          id : userId
-        }
-      }
-    }
-  })
+  const existe = confirmarCurso(cursoId, userId)
 
-  if(existe[0]){
+  if(existe){
     for(const alumno of datos){
       for(const trabajo of alumno.trabajos){
         const update = await prisma.Trabajo.update({

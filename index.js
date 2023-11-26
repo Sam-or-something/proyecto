@@ -18,7 +18,7 @@ const secret = process.env.TOKEN_SECRET;
 const port = process.env.PORT;
 
 function generateToken(user) {
-  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
+  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '7d' });
 }
 
 function authenticateToken(req, res, next) {
@@ -41,8 +41,8 @@ function authenticateToken(req, res, next) {
   }
 }
 
- function confirmarCurso(cursoId, userId){
-  const existe = prisma.Curso.findMany({
+ async function confirmarCurso(cursoId, userId){
+  const existe = await prisma.Curso.findMany({
     where: {
       id: cursoId,
       profs:{
@@ -57,7 +57,7 @@ function authenticateToken(req, res, next) {
     return true
   }
   else{
-    console.log("no")
+    console.log(`no existe`)
     return false
   }
 }
@@ -110,9 +110,8 @@ app.post('/register', async (req, res) => {
         password: hashedPassword
       }
     });
-    const token = generateToken(user)
     console.log('Created new User')
-    res.json({ success: "true", token: `${token}`/*, refresh: `${rToken}`*/ })
+    res.json({ success: "true"})
   }
 });
 
@@ -138,7 +137,7 @@ app.post('/login', async (req, res) => {
       if (result) {
         const token = generateToken(user);
         console.log('Login successful')
-        res.json({ success: "true", token: `${token}`/*, refresh: `${rToken}` */})
+        res.json({ success: "true", token: `${token}`})
       }
       else {
         console.log('Password is incorrect')
@@ -151,7 +150,7 @@ app.post('/login', async (req, res) => {
 
 app.post('/crear-curso', authenticateToken, async(req, res) => { 
   const Name = req.body.Name;
-  const anio = req.body.anio;
+  const anio = parseInt(req.body.anio);
   const materia = req.body.materia;
   const decoded = req.decoded
   const id = parseInt(decoded.id)
@@ -209,6 +208,7 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
 })
 
 app.get('/cursos', authenticateToken, async(req, res) => {
+  console.log("cursos called")
   const decoded = req.decoded
   const id = parseInt(decoded.id)
   
@@ -224,14 +224,10 @@ app.get('/cursos', authenticateToken, async(req, res) => {
   res.json(cursos.cursos)
 })
 
-app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
-  const curso = parseInt(req.params.cursoId)
-  const decoded = req.decoded
-  const id = parseInt(decoded.id)
-
-  const existe = confirmarCurso(curso, id)
-  console.log(existe)
-
+async function mostrarCurso(curso, id){
+  const existe = await confirmarCurso(curso, id)
+  var conLog
+  var resJson
   if(existe){
     const alumnos = await prisma.Alumno.findMany({
       where: {
@@ -281,12 +277,24 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
       }
       notas.push({id: alumno.id, Name: alumno.Name, trabajos: tbjs})
     }
-    console.log(`curso ${curso} showing`)
-    res.json({alumnos: notas})
+    conLog = `curso ${curso} showing`
+    resJson = {alumnos: notas, success: true} 
   }
   else{
-  console.log(`curso ${curso} is not accesible`)
+    conLog = `curso ${curso} is not accesible`
+    resJson = {success: false}
   }
+  return {conLog: conLog, resJson: resJson}
+}
+
+app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
+  const curso = parseInt(req.params.cursoId)
+  const decoded = req.decoded
+  const id = parseInt(decoded.id)
+
+  const respuesta = await mostrarCurso(curso, id)
+  console.log(respuesta.conLog)
+  res.json(respuesta.resJson)
 })
 
 app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>{
@@ -296,7 +304,7 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
   const Name = req.body.Name
 
   //confirmar existencia del curso
-  const existe = confirmarCurso(cursoId, userId)
+  const existe = await confirmarCurso(cursoId, userId)
 
   if(existe){
     //confirmar que nombre no existe
@@ -357,7 +365,7 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
               trabajos:{
                 create:{
                   nota: "0",
-                  comentario: "",
+                  comentario: "---",
                   alumno: {
                     connect: {
                       id:alumno.id
@@ -377,6 +385,16 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
     console.log(`curso id ${curso} does not exist`)
     res.json({success: "false"})
   }
+})
+
+app.get('/cursos/:cursoId/editar', authenticateToken, async(req, res) => {
+  const curso = parseInt(req.params.cursoId)
+  const decoded = req.decoded
+  const id = parseInt(decoded.id)
+
+  const respuesta = await mostrarCurso(curso, id)
+  console.log(respuesta.conLog)
+  res.json(respuesta.resJson)
 })
 
 app.post('/cursos/:cursoId/editar', authenticateToken, async(req, res) => {

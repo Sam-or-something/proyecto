@@ -41,7 +41,7 @@ Content-Type : application/json
     "Name": ""
 }
 
-POST http://localhost:9000/cursos/:idCurso/editar HTTP/1.1
+POST http://localhost:9000/cursos/:cursoId/editar HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhbW15QGhvbGEuY29tIiwiaWQiOiIxMCIsImlhdCI6MTcwMDc5NDg4NCwiZXhwIjoxNzAwODA1Njg0fQ.Cr54cbxXnbexsMYH4jeeLee6gJg8THSoTLJCDepePr0
 Content-Type : application/json
 
@@ -64,3 +64,6 @@ Content-Type : application/json
     {}
   ]
 }
+
+GET http://localhost:9000/cursos/74/editar HTTP/1.1
+Authorization: Bearer 

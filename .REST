@@ -1,2 +1,11 @@
-GET http://localhost:9000/cursos/74/editar HTTP/1.1
-Authorization: Bearer 
+GET http://localhost:9000/cursos HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imp1YW5AanVhbi5qdWFuIiwiaWQiOiIxMiIsImlhdCI6MTcwMTExODU5NSwiZXhwIjoxNzAxMTI5Mzk1fQ.r4uJtTJ0ytqwEkuicRKHZ3rn_irciqegJlla-q6gaI8
+Content-Type : application/json
+
+{
+    "anio": 4,
+    "Name": "Gestion T",
+    "materia": "Historia",
+    "alumnos": "Juan;Santiago;Sofia;Sam",
+    "emails": "sammy@hola.com"
+}

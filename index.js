@@ -10,18 +10,20 @@ const prisma = new PrismaClient();
 
 const app = express();
 app.use(express.json());
+
 app.use(cors({
   origin: ["https://daskolar.vercel.app", "http://localhost:3000"]
 }));
-const secret = process.env.TOKEN_SECRET;
-
 const port = process.env.PORT;
 
+
+const secret = process.env.TOKEN_SECRET;
 function generateToken(user) {
-  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '7d' });
+  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
 }
 
 function authenticateToken(req, res, next) {
+  console.log("authenticating")
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
   if (token == null) {
@@ -79,8 +81,7 @@ async function hashPassword(password) {
   return hashed
 };
 
-app.get('/', (_, res) => {
-  res.send("Holis");
+app.get('/', (req, res) => {
 })
 
 app.post('/register', async (req, res) => {
@@ -116,6 +117,7 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
+  console.log('logging in')
   const email = req.body.email;
   const password = req.body.password;
 
@@ -136,6 +138,7 @@ app.post('/login', async (req, res) => {
     bcrypt.compare(password, hashedPassword, function (err, result) {
       if (result) {
         const token = generateToken(user);
+        const oneDay = 1000*60*60*24
         console.log('Login successful')
         res.json({ success: "true", token: `${token}`})
       }
@@ -156,24 +159,34 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
   const id = parseInt(decoded.id)
   const alumnos = req.body.alumnos.split(";")
 
-  const existe = await prisma.Curso.findMany({
-    where: {
-      Name: Name,
-      profs:{
-        some:{
-          id: id
-        }
+  var continuar = true
+
+  if(req.body.emails){
+    var otherUser = req.body.emails.split(";")
+    let noExisteOther =[]
+    for(const email of otherUser){
+      let existeOther = await prisma.User.findMany({
+          where: {
+            email: email
+          }
+      })
+      
+      if(!existeOther[0]){
+        noExisteOther.push(email)
       }
     }
-  })
 
-  if(existe[0]){
-    console.log('Curso name already exists')
-    res.json({ success: "false" })
+    if(noExisteOther[0]){
+      console.log(`emails ${noExisteOther} do not belong to existing accounts`)
+      res.json({success: false, noExisten: noExisteOther})
+      continuar = false
+    }  
   }
-  else{
+  
+  if(continuar){
+    var newCurso
     //crear curso
-    const newCurso = await prisma.Curso.create({
+    newCurso = await prisma.Curso.create({
       data: {
         Name: Name,
         anio: anio,
@@ -185,6 +198,26 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
         }
       }
     })
+    for(const email of otherUser){
+      const other = await prisma.User.findMany({
+        where:{
+          email: email
+        }
+      })
+      const updateado = await prisma.Curso.update({
+        where:{
+          id: newCurso.id
+        },
+        data:{
+          profs:{
+            connect:{
+              id: other[0].id
+            }
+          }
+        }
+      })
+    }
+  
 
     //crear alumnos y poner en el curso
     for(const alumno of alumnos){
@@ -201,7 +234,6 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
           }
         })
     }
-
     console.log('Created new curso')
     res.json({ success: "true" , resultado: newCurso})
   }
@@ -393,11 +425,12 @@ app.get('/cursos/:cursoId/editar', authenticateToken, async(req, res) => {
   const id = parseInt(decoded.id)
 
   const respuesta = await mostrarCurso(curso, id)
-  console.log(respuesta.conLog)
+  console.log(`editar ${respuesta.conLog}`)
   res.json(respuesta.resJson)
 })
 
 app.post('/cursos/:cursoId/editar', authenticateToken, async(req, res) => {
+  console.log("called")
   const cursoId = parseInt(req.params.cursoId)
   const decoded = req.decoded
   const userId = parseInt(decoded.id)

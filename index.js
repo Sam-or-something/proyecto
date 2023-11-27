@@ -2,8 +2,10 @@ const express = require('express');
 const mysql = require('mysql2');
 const dotenv = require('dotenv').config();
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const jsonwebtoken = require('jsonwebtoken');
+const { expressjwt: jwt } = require('express-jwt');
 const cors = require('cors');
+const cookieParser = require('cookie-parser')
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -19,7 +21,7 @@ const port = process.env.PORT;
 
 const secret = process.env.TOKEN_SECRET;
 function generateToken(user) {
-  return jwt.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
+  return jsonwebtoken.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
 }
 
 function authenticateToken(req, res, next) {
@@ -33,7 +35,7 @@ function authenticateToken(req, res, next) {
 
   try
   {
-    const decoded = jwt.verify(token, secret,)
+    const decoded = jsonwebtoken.verify(token, secret,)
     req.decoded = decoded
     next()
   }
@@ -138,9 +140,8 @@ app.post('/login', async (req, res) => {
     bcrypt.compare(password, hashedPassword, function (err, result) {
       if (result) {
         const token = generateToken(user);
-        const oneDay = 1000*60*60*24
         console.log('Login successful')
-        res.json({ success: "true", token: `${token}`})
+        res.json({ success: "true"})
       }
       else {
         console.log('Password is incorrect')
@@ -178,7 +179,7 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
 
     if(noExisteOther[0]){
       console.log(`emails ${noExisteOther} do not belong to existing accounts`)
-      res.json({success: false, noExisten: noExisteOther})
+      res.json({success: "false", noExisten: noExisteOther})
       continuar = false
     }  
   }
@@ -310,11 +311,11 @@ async function mostrarCurso(curso, id){
       notas.push({id: alumno.id, Name: alumno.Name, trabajos: tbjs})
     }
     conLog = `curso ${curso} showing`
-    resJson = {alumnos: notas, success: true} 
+    resJson = {alumnos: notas, success: "true"} 
   }
   else{
     conLog = `curso ${curso} is not accesible`
-    resJson = {success: false}
+    resJson = {success: "false"}
   }
   return {conLog: conLog, resJson: resJson}
 }
@@ -328,7 +329,7 @@ app.get('/cursos/:cursoId', authenticateToken, async(req, res) => {
   console.log(respuesta.conLog)
   res.json(respuesta.resJson)
 })
-
+ 
 app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>{
   const cursoId = parseInt(req.params.cursoId)
   const decoded = req.decoded

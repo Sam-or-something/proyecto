@@ -30,7 +30,9 @@ function generateToken(user) {
 
 const authenticateToken = (req, res, next) => {
   console.log("authenticating")
-  const token = req.cookies.access_token;
+  //const token = req.cookies.access_token;
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
   if (!token) {
     console.log("no token")
     return res.json({ success: 'false' });
@@ -174,6 +176,7 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
   const alumnos = req.body.alumnos.split(";")
 
   var continuar = true
+  console.log(req.body.emails)
 
   if(req.body.emails){
     var otherUser = req.body.emails.split(";")
@@ -212,24 +215,26 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
         }
       }
     })
-    for(const email of otherUser){
-      const other = await prisma.User.findMany({
-        where:{
-          email: email
-        }
-      })
-      const updateado = await prisma.Curso.update({
-        where:{
-          id: newCurso.id
-        },
-        data:{
-          profs:{
-            connect:{
-              id: other[0].id
+    if(otherUser){
+      for(const email of otherUser){
+        const other = await prisma.User.findMany({
+          where:{
+            email: email
+          }
+        })
+        const updateado = await prisma.Curso.update({
+          where:{
+            id: newCurso.id
+          },
+          data:{
+            profs:{
+              connect:{
+                id: other[0].id
+              }
             }
           }
-        }
-      })
+        })
+      }
     }
   
 

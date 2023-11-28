@@ -141,7 +141,7 @@ app.post('/login', async (req, res) => {
       if (result) {
         const token = generateToken(user);
         console.log('Login successful')
-        res.json({ success: "true"})
+        res.json({ success: "true", token: token})
       }
       else {
         console.log('Password is incorrect')

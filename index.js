@@ -12,10 +12,14 @@ const prisma = new PrismaClient();
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(cors({
-  origin: ["https://daskolar.vercel.app", "http://localhost:3000"]
+  origin: ["https://daskolar.vercel.app", "http://localhost:3000"],
+  methods: ['POST', 'PUT', 'GET', 'DELETE', 'OPTIONS', 'HEAD'],
+  credentials: true,
 }));
+app.use(express.urlencoded({ extended: true }));
 const port = process.env.PORT;
 
 
@@ -24,22 +28,19 @@ function generateToken(user) {
   return jsonwebtoken.sign({ email: `${user.email}`, id: `${user.id}` }, secret, { expiresIn: '3h' });
 }
 
-function authenticateToken(req, res, next) {
+const authenticateToken = (req, res, next) => {
   console.log("authenticating")
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
-  if (token == null) {
-    console.log("null token")
-    return res.sendStatus(401)
+  const token = req.cookies.access_token;
+  if (!token) {
+    console.log("no token")
+    return res.json({ success: 'false' });
   }
-
-  try
-  {
+  try {
     const decoded = jsonwebtoken.verify(token, secret,)
+    console.log(decoded)
     req.decoded = decoded
     next()
-  }
-  catch(err){
+  } catch {
     console.log("fail")
     res.sendStatus(401)
   }
@@ -83,7 +84,8 @@ async function hashPassword(password) {
   return hashed
 };
 
-app.get('/', (req, res) => {
+app.get('/', authenticateToken, async (req, res) => {
+  console.log(req.decoded)
 })
 
 app.post('/register', async (req, res) => {
@@ -141,7 +143,18 @@ app.post('/login', async (req, res) => {
       if (result) {
         const token = generateToken(user);
         console.log('Login successful')
-        res.json({ success: "true", token: token})
+        const options = {
+          httpOnly: true,
+          expires: new Date(Date.now() + 1000 * 60 * 30),
+          withCredentials: true,
+          secure: true,
+          sameSite: "none"
+        };
+
+        res.cookie("access_token", token, options)
+        .status(200)
+        .json({ success: "true", token: token })
+        .send()
       }
       else {
         console.log('Password is incorrect')

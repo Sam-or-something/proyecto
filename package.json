@@ -25,6 +25,8 @@
   },
   "devDependencies": {
     "@prisma/client": "^5.2.0",
+    "@types/cookie-parser": "^1.4.6",
+    "@types/cors": "^2.8.17",
     "dotenv": "^16.1.4",
     "prisma": "^5.2.0"
   }

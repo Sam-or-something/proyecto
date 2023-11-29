@@ -39,7 +39,6 @@ const authenticateToken = (req, res, next) => {
   }
   try {
     const decoded = jsonwebtoken.verify(token, secret,)
-    console.log(decoded)
     req.decoded = decoded
     next()
   } catch {
@@ -145,18 +144,7 @@ app.post('/login', async (req, res) => {
       if (result) {
         const token = generateToken(user);
         console.log('Login successful')
-        const options = {
-          httpOnly: true,
-          expires: new Date(Date.now() + 1000 * 60 * 30),
-          withCredentials: true,
-          secure: true,
-          sameSite: "none"
-        };
-
-        res.cookie("access_token", token, options)
-        .status(200)
-        .json({ success: "true", token: token })
-        .send()
+        res.json({ success: "true", token: token })
       }
       else {
         console.log('Password is incorrect')
@@ -176,10 +164,10 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
   const alumnos = req.body.alumnos.split(";")
 
   var continuar = true
-  console.log(req.body.emails)
+  console.log(req.body.profesores)
 
-  if(req.body.emails){
-    var otherUser = req.body.emails.split(";")
+  if(req.body.profesores){
+    var otherUser = req.body.profesores.split(";")
     let noExisteOther =[]
     for(const email of otherUser){
       let existeOther = await prisma.User.findMany({
@@ -187,7 +175,6 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
             email: email
           }
       })
-      
       if(!existeOther[0]){
         noExisteOther.push(email)
       }

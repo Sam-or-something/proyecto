@@ -1,57 +1,63 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  email String @unique
-  name String
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  name     String
   lastName String
   password String
-  cursos Curso[] @relation("UserToCurso")
+  cursos   Curso[] @relation("UserToCurso")
 }
 
 model Curso {
-  id Int @id @default(autoincrement())
-  Name String
-  anio Int
-  materia String
-  profs User[] @relation("UserToCurso")
-  alumnos Alumno[]
+  id        Int          @id @default(autoincrement())
+  Name      String
+  anio      String
+  materia   String
+  profs     User[]       @relation("UserToCurso")
+  alumnos   Alumno[]
   MTrabajos ModTrabajo[]
 }
 
-model ModTrabajo{
-  id Int @id @default(autoincrement())
-  Name String
-  idCurso Int
-  curso Curso @relation(fields: [idCurso], references: [id])
+model ModTrabajo {
+  id       Int       @id @default(autoincrement())
+  Name     String
+  idCurso  Int
+  curso    Curso     @relation(fields: [idCurso], references: [id])
   trabajos Trabajo[]
 }
 
-model Alumno{
-  id Int @id @default(autoincrement())
-  Name String
-  idCurso Int
-  curso Curso @relation(fields: [idCurso], references: [id])
+model Alumno {
+  id       Int       @id @default(autoincrement())
+  Name     String
+  idCurso  Int
+  curso    Curso     @relation(fields: [idCurso], references: [id])
   trabajos Trabajo[]
 }
 
-model Trabajo{
-  id Int @id @default(autoincrement())
-  nota String
+model Trabajo {
+  id         Int        @id @default(autoincrement())
+  nota       String
   comentario String
-  idMod Int
-  modelo ModTrabajo @relation(fields: [idMod], references: [id])
-  idAlumno Int
-  alumno Alumno @relation(fields: [idAlumno], references: [id])
+  idAlumno   Int
+  idMod      Int
+  modelo     ModTrabajo @relation(fields: [idMod], references: [id])
+  alumno     Alumno     @relation(fields: [idAlumno], references: [id])
+}
+
+model UserToCurso {
+  A Int
+  B Int
+
+  @@unique([A, B], map: "_UserToCurso_AB_unique")
+  @@index([B], map: "_UserToCurso_B_index")
+  @@map("_UserToCurso")
 }

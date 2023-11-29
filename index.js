@@ -30,14 +30,15 @@ function generateToken(user) {
 
 const authenticateToken = (req, res, next) => {
   console.log("authenticating")
-  const token = req.cookies.access_token;
+  //const token = req.cookies.access_token;
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
   if (!token) {
     console.log("no token")
     return res.json({ success: 'false', comment: "error de token"});
   }
   try {
     const decoded = jsonwebtoken.verify(token, secret,)
-    console.log(decoded)
     req.decoded = decoded
     next()
   } catch {
@@ -143,18 +144,7 @@ app.post('/login', async (req, res) => {
       if (result) {
         const token = generateToken(user);
         console.log('Login successful')
-        const options = {
-          httpOnly: true,
-          expires: new Date(Date.now() + 1000 * 60 * 30),
-          withCredentials: true,
-          secure: true,
-          sameSite: "none"
-        };
-
-        res.cookie("access_token", token, options)
-        .status(200)
-        .json({ success: "true", token: token })
-        .send()
+        res.json({ success: "true", token: token })
       }
       else {
         console.log('Password is incorrect')
@@ -167,16 +157,17 @@ app.post('/login', async (req, res) => {
 
 app.post('/crear-curso', authenticateToken, async(req, res) => { 
   const Name = req.body.Name;
-  const anio = parseInt(req.body.anio);
+  const anio = req.body.anio;
   const materia = req.body.materia;
   const decoded = req.decoded
   const id = parseInt(decoded.id)
   const alumnos = req.body.alumnos.split(";")
 
   var continuar = true
+  console.log(req.body.profesores)
 
-  if(req.body.emails){
-    var otherUser = req.body.emails.split(";")
+  if(req.body.profesores){
+    var otherUser = req.body.profesores.split(";")
     let noExisteOther =[]
     for(const email of otherUser){
       let existeOther = await prisma.User.findMany({
@@ -184,7 +175,6 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
             email: email
           }
       })
-      
       if(!existeOther[0]){
         noExisteOther.push(email)
       }
@@ -212,24 +202,26 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
         }
       }
     })
-    for(const email of otherUser){
-      const other = await prisma.User.findMany({
-        where:{
-          email: email
-        }
-      })
-      const updateado = await prisma.Curso.update({
-        where:{
-          id: newCurso.id
-        },
-        data:{
-          profs:{
-            connect:{
-              id: other[0].id
+    if(otherUser){
+      for(const email of otherUser){
+        const other = await prisma.User.findMany({
+          where:{
+            email: email
+          }
+        })
+        const updateado = await prisma.Curso.update({
+          where:{
+            id: newCurso.id
+          },
+          data:{
+            profs:{
+              connect:{
+                id: other[0].id
+              }
             }
           }
-        }
-      })
+        })
+      }
     }
   
 

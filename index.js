@@ -157,7 +157,7 @@ app.post('/login', async (req, res) => {
 
 app.post('/crear-curso', authenticateToken, async(req, res) => { 
   const Name = req.body.Name;
-  const anio = parseInt(req.body.anio);
+  const anio = req.body.anio;
   const materia = req.body.materia;
   const decoded = req.decoded
   const id = parseInt(decoded.id)

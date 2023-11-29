@@ -33,7 +33,7 @@ const authenticateToken = (req, res, next) => {
   const token = req.cookies.access_token;
   if (!token) {
     console.log("no token")
-    return res.json({ success: 'false' });
+    return res.json({ success: 'false', comment: "error de token"});
   }
   try {
     const decoded = jsonwebtoken.verify(token, secret,)
@@ -103,7 +103,7 @@ app.post('/register', async (req, res) => {
 
   if (users.length != 0) {
     console.log('User already exists')
-    res.json({ success: "false" })
+    res.json({ success: "false", comment: "El email ya esta relacionado a una cuenta"})
   }
   else {
     //crear usuario
@@ -134,7 +134,7 @@ app.post('/login', async (req, res) => {
 
   if (!user) {
     console.log('User does not exist')
-    res.json({ success: "false" })
+    res.json({ success: "false", comment: "No exite un usuario con ese email" })
   }
   else {
     //autenticar contraseña
@@ -158,7 +158,7 @@ app.post('/login', async (req, res) => {
       }
       else {
         console.log('Password is incorrect')
-        res.json({ success: "false" })
+        res.json({ success: "false", comment: "Contraseña incorrecta"})
       }
     });
   }
@@ -192,7 +192,7 @@ app.post('/crear-curso', authenticateToken, async(req, res) => {
 
     if(noExisteOther[0]){
       console.log(`emails ${noExisteOther} do not belong to existing accounts`)
-      res.json({success: "false", noExisten: noExisteOther})
+      res.json({success: "false", noExisten: noExisteOther, comment: "No existen usuarios con esos emails"})
       continuar = false
     }  
   }
@@ -328,7 +328,7 @@ async function mostrarCurso(curso, id){
   }
   else{
     conLog = `curso ${curso} is not accesible`
-    resJson = {success: "false"}
+    resJson = {success: "false", comment: "Curso no accesible"}
   }
   return {conLog: conLog, resJson: resJson}
 }
@@ -367,7 +367,7 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
 
     if(repetido[0]){
       console.log(`Trabajo llamado ${Name} ya existe en este curso`)
-      res.json({success: "false"})
+      res.json({success: "false", comment: "Ya existe un trabajo con ese nombre en este curso"})
     }
     else{
       //lista alumnos
@@ -400,7 +400,7 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
         })
         if(existe[0]){
           console.log('error de identificacion')
-          res.json({success: "false"})
+          res.json({success: "false", comment: "error de indentificacion"})
         }
         else{
           const trabajos = await prisma.ModTrabajo.update({
@@ -429,7 +429,7 @@ app.post('/cursos/:cursoId/crear-trabajo', authenticateToken, async(req, res) =>
   }
   else{
     console.log(`curso id ${curso} does not exist`)
-    res.json({success: "false"})
+    res.json({success: "false", comment: "error de identificacion"})
   }
 })
 
@@ -474,6 +474,6 @@ app.post('/cursos/:cursoId/editar', authenticateToken, async(req, res) => {
   }
   else{
     console.log(`curso id ${curso} does not exist`)
-    res.json({success: "false"})
+    res.json({success: "false", comment: "curso innaccesible"})
   }
 })

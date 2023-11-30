@@ -3,16 +3,13 @@ const mysql = require('mysql2');
 const dotenv = require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jsonwebtoken = require('jsonwebtoken');
-const { expressjwt: jwt } = require('express-jwt');
 const cors = require('cors');
-const cookieParser = require('cookie-parser')
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const app = express();
 app.use(express.json());
-app.use(cookieParser());
 
 app.use(cors({
   origin: ["https://daskolar.vercel.app", "http://localhost:3000"],
@@ -30,7 +27,6 @@ function generateToken(user) {
 
 const authenticateToken = (req, res, next) => {
   console.log("authenticating")
-  //const token = req.cookies.access_token;
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
   if (!token) {
